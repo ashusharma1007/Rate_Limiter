@@ -29,9 +29,8 @@ func (l *TokenBucketLimiter) Allow(clientID string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	// 1. get bucket for clientID from l.clients
-	//    if it doesn't exist, create one with full tokens and current time
-
+	//get bucket for clientID from l.clients
+	//if it doesn't exist, create one with full tokens and current time
 	b, exists := l.clients[clientID]
 	if !exists {
 		l.clients[clientID] = &bucket{
@@ -41,20 +40,19 @@ func (l *TokenBucketLimiter) Allow(clientID string) bool {
 		b = l.clients[clientID]
 	}
 
-	// 2. check if window has passed since b.lastRefill
-	//    if yes: reset b.tokens = l.rps, update b.lastRefill = now
+	//chek if window has passed since b.lastRefill
+	//if yes: reset b.tokens = l.rps, update b.lastRefill = now
 	if time.Since(b.lastrefill) > l.window {
 		b.tokens = l.rps
 		b.lastrefill = time.Now()
 	}
 
-	// 3. if b.tokens > 0: decrement tokens, return true
-	//    else: return false
+	// if b.tokens > 0: decrement tokens, return true
 	if b.tokens > 0 {
-		b.tokens -= 1
+		b.tokens--
 		return true
-	} else {
-		return false
 	}
+
+	return false
 
 }
