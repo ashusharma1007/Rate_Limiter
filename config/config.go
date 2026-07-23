@@ -13,7 +13,8 @@ type Config struct {
 	JWTSecret          string        `yaml:"jwt_secret"`
 	KafkaBrokerAddress string        `yaml:"kafka_broker_address"`
 	ReqPerSec          int           `yaml:"req_per_sec"`
-	RateLimitWindow    time.Duration `yaml:"rate_limit_window"`
+	KafkaTopic         string        `yaml:"kafka_topic"`
+	RateLimitWindow    time.Duration `yaml:"-"`
 }
 
 var cfg *Config
@@ -28,7 +29,7 @@ func LoadConfig(fileLoc string) error {
 	if err != nil {
 		return err
 	}
-	fenv := os.ExpandEnv((string(f)))
+	fenv := os.ExpandEnv(string(f))
 
 	err = yaml.Unmarshal([]byte(fenv), &cfgVar)
 	if err != nil {
@@ -40,6 +41,12 @@ func LoadConfig(fileLoc string) error {
 	if cfgVar.KafkaBrokerAddress == "" {
 		return fmt.Errorf("kafka_broker_address is required")
 	}
+
+	LoadDefault(&cfgVar)
 	cfg = &cfgVar
 	return nil
+}
+
+func LoadDefault(cfg *Config) {
+	cfg.RateLimitWindow = time.Second
 }

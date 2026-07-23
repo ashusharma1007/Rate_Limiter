@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net"
 	"net/http"
 	"rate-limiter/auth"
 	"rate-limiter/kafka"
@@ -12,7 +13,7 @@ import (
 func RateLimit(limiter *ratelimit.TokenBucketLimiter, producer *kafka.Producer) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			clientID := r.RemoteAddr
+			clientID, _, _ := net.SplitHostPort(r.RemoteAddr)
 			if claims, ok := auth.GetClaims(r.Context()); ok {
 				clientID = claims.UserID
 			}

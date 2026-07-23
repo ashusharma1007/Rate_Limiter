@@ -47,3 +47,7 @@ func (p *Producer) Publish(event models.RateLimitEvent) {
 		Value: data,
 	}, nil)
 }
+
+func (p *Producer) Flush(timoutMs int) {
+	p.producer.Flush(timoutMs)
+}
