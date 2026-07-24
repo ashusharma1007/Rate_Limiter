@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"rate-limiter/config"
+	"rate-limiter/consumer"
+	"rate-limiter/consumer/store"
 	"rate-limiter/kafka"
 	"rate-limiter/ratelimit"
 	"rate-limiter/server"
@@ -32,6 +34,22 @@ func main() {
 	limiter := ratelimit.NewLimiter(cfg.ReqPerSec, cfg.RateLimitWindow)
 
 	server := server.New(cfg.Port, cfg.JWTSecret, limiter, producer)
+
+	redisStore := store.NewRedisStore("localhost:6379")
+
+	aggregator := consumer.NewAggregator(redisStore)
+
+	c, err := consumer.NewConsumer(cfg.KafkaBrokerAddress, "rate-limiter-consumer", cfg.KafkaTopic, aggregator)
+	if err != nil {
+		log.Fatalf("error creating consumer: %v", err)
+	}
+
+	go func() {
+		log.Println("consumer starting")
+		if err := c.Start(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			log.Fatalf("consumer error: %v", err)
+		}
+	}()
 
 	go func() {
 		log.Printf("server starting on port %s", cfg.Port)

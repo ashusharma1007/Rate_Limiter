@@ -21,15 +21,17 @@ func New(port string, jwtSecret string, limiter *ratelimit.TokenBucketLimiter, p
 		w.Write([]byte("ok"))
 	})
 
-	mux.Handle("/api/", auth.Middleware(jwtSecret)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	apiHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
-	})))
+	})
+
+	mux.Handle("/api/", auth.Middleware(jwtSecret)(middleware.RateLimit(limiter, producer)(apiHandler)))
 
 	return &Server{
 		http: &http.Server{
 			Addr:    ":" + port,
-			Handler: middleware.RateLimit(limiter, producer)(mux),
+			Handler: (mux),
 		},
 	}
 }
