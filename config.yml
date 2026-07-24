@@ -4,4 +4,4 @@ jwt_secret: ${JWT_SECRET}
 kafka_broker_address: ${KAFKA_BROKER_ADDRESS}
 req_per_sec: ${REQ_PER_SEC}
 rate_limit_window: ${RATE_LIMIT_WINDOW}
-kafka_topic: ${KAFKA_TOPIC}}
+kafka_topic: ${KAFKA_TOPIC}
